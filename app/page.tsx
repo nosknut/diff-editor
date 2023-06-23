@@ -4,6 +4,9 @@ import { useSearchParams } from 'next/navigation'
 import useSWR from 'swr'
 import path from 'path';
 import { useLocalStorage } from 'usehooks-ts'
+import { Navbar } from "flowbite-react";
+import { Button, Modal } from 'flowbite-react';
+import { useState } from 'react';
 
 // @ts-ignore
 const fetcher = (...args) => fetch(...args).then(res => res.text())
@@ -30,6 +33,9 @@ function getTitle(file1: string | null, file2: string | null) {
 }
 
 export default function Home() {
+  const [openModal, setOpenModal] = useState<string | undefined>();
+  const props = { openModal, setOpenModal };
+
   const [renderSideBySide, setRenderSideBySide] = useLocalStorage('editor/renderSideBySide', false)
 
   const searchParams = useSearchParams()
@@ -43,32 +49,64 @@ export default function Home() {
   const title = getTitle(pathFile1, pathFile2)
 
   return (
-    <div style={{height: "100vh", overflow: "hidden"}}>
-      <nav className="bg-white border-gray-200 dark:bg-gray-900">
-        <div className="flex flex-wrap items-center justify-between mx-auto p-4">
-          <span className="self-center text-1xl font-semibold whitespace-nowrap dark:text-white">{title}</span>
-          <button data-collapse-toggle="navbar-default" type="button" className="inline-flex items-center p-2 ml-3 text-sm text-gray-500 rounded-lg md:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600" aria-controls="navbar-default" aria-expanded="false">
-            <span className="sr-only">Open main menu</span>
-            <svg className="w-6 h-6" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fillRule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd"></path></svg>
-          </button>
-          <div className="hidden w-full md:block md:w-auto" id="navbar-default">
-            <ul className="font-medium flex flex-col p-4 md:p-0 mt-4 border border-gray-100 rounded-lg bg-gray-50 md:flex-row md:space-x-8 md:mt-0 md:border-0 md:bg-white dark:bg-gray-800 md:dark:bg-gray-900 dark:border-gray-700">
-              <li>
-                <div className="flex items-center mr-4">
-                  <input
-                    id="inline-checkbox"
-                    type="checkbox"
-                    checked={!renderSideBySide}
-                    onChange={() => setRenderSideBySide(!renderSideBySide)}
-                    className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
-                  />
-                  <label htmlFor="inline-checkbox" className="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">Combined View</label>
-                </div>
-              </li>
-            </ul>
+    <div style={{ height: "100vh", overflow: "hidden" }}>
+
+      <Navbar
+        fluid={true}
+        rounded={true}
+        className="bg-white border-gray-200 dark:bg-gray-900"
+      >
+        <Navbar.Brand>
+          <span className="self-center whitespace-nowrap text-xl font-semibold dark:text-white">
+            {title}
+          </span>
+        </Navbar.Brand>
+        <Navbar.Toggle />
+        <Navbar.Collapse>
+          <ul className="font-medium flex flex-col p-4 md:p-0 mt-4 border border-gray-100 rounded-lg bg-gray-50 md:flex-row md:space-x-8 md:mt-0 md:border-0 md:bg-white dark:bg-gray-800 md:dark:bg-gray-900 dark:border-gray-700">
+            <li>
+              <div className="flex items-center mr-4 h-full py-2">
+                <input
+                  id="inline-checkbox"
+                  type="checkbox"
+                  checked={!renderSideBySide}
+                  onChange={() => setRenderSideBySide(!renderSideBySide)}
+                  className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                />
+                <label htmlFor="inline-checkbox" className="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">Combined View</label>
+              </div>
+            </li>
+            <li>
+              <Button className='h-full' color="dark" onClick={() => props.setOpenModal('default')}>What is this?</Button>
+            </li>
+          </ul>
+        </Navbar.Collapse>
+      </Navbar>
+      <Modal show={props.openModal === 'default'} onClose={() => props.setOpenModal(undefined)}>
+        <Modal.Header>Diff Editor</Modal.Header>
+        <Modal.Body>
+          <div className="space-y-6">
+            <p className="text-base leading-relaxed text-gray-500 dark:text-gray-400">
+              This tool allows you to compare two files side by side.
+              You can use it to compare two versions of the same file or two different files.
+              The parts that are green have been added to the new file,
+              and the parts that are red have been removed from the original file.
+            </p>
+            <p className="text-base leading-relaxed text-gray-500 dark:text-gray-400">
+              If you are in Combined View, the two files have been merged
+              together and the parts that are green have been added to the new file,
+              and the parts that are red have been removed from the original file.
+            </p>
+            <p className="text-base leading-relaxed text-gray-500 dark:text-gray-400">
+              If you are not in Combined View, the two files are shown side by side, with the original
+              file on the left and the new file on the right.
+            </p>
           </div>
-        </div>
-      </nav>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button color="dark" onClick={() => props.setOpenModal(undefined)}>Ok</Button>
+        </Modal.Footer>
+      </Modal>
       <DiffEditor
         height={'100%'}
         width={'100vw'}
