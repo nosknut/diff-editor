@@ -7,6 +7,7 @@ import { useLocalStorage } from 'usehooks-ts'
 import { Navbar } from "flowbite-react";
 import { Button, Modal } from 'flowbite-react';
 import { useState } from 'react';
+import urlJoin from 'url-join';
 
 // @ts-ignore
 const fetcher = (...args) => fetch(...args).then(res => res.text())
@@ -32,6 +33,14 @@ function getTitle(file1: string | null, file2: string | null) {
   return `${file1Name} -> ${file2Name}`
 }
 
+function joinOrFirst(directory: string | null, file: string | null) {
+  if (directory && file) {
+    return urlJoin(directory, file)
+  } else {
+    return file
+  }
+}
+
 export default function Home() {
   const [openModal, setOpenModal] = useState<string | undefined>();
   const props = { openModal, setOpenModal };
@@ -40,8 +49,9 @@ export default function Home() {
 
   const searchParams = useSearchParams()
 
-  const pathFile1 = searchParams.get('file1')
-  const pathFile2 = searchParams.get('file2')
+  const directory = searchParams.get('directory')
+  const pathFile1 = joinOrFirst(directory, searchParams.get('file1'))
+  const pathFile2 = joinOrFirst(directory, searchParams.get('file2'))
 
   const { data: file1, isLoading: loadingFile1, error: errorFile1 } = useSWR(pathFile1, fetcher)
   const { data: file2, isLoading: loadingFile2, error: errorFile2 } = useSWR(pathFile2, fetcher)
